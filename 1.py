@@ -1,8 +1,13 @@
+import enum
 import getpass as gp
-from operator import truediv
-from secrets import token_bytes
 import telnetlib as tl
+from threading import Timer
 from time import sleep
+
+from setuptools import Command
+
+
+#functions start
 
 def to_bytes(line):
     return f"{line}\n".encode("utf-8")
@@ -13,24 +18,43 @@ def AAA_input():
         HOST = input("Enter host IP: ")
         user = input("Enter user login: ")
         password = gp.getpass()
+ 
         print('Data verify...')
-        tn=tl.Telnet(HOST, timeout=10)
-        tn.read_until(b"login: ")
-        tn.write(to_bytes(user))
-        sleep(1)
-        tn.read_until(b"Password: ")
-        tn.write(to_bytes(password))
-        index, m, output = tn.expect([b'Login incorrect', b"Last login:"])
-        if index == 0:
-            print('User data incorrect')
-        if index==1:
-            AAA_status=1
-            print('User data is correct!')
+        try:
+            tn=tl.Telnet(HOST, timeout=10)
+        except TimeoutError:
+            print('IP incorrect or host not available')
+        else:
+            tn.read_until(b"login: ")
+            tn.write(to_bytes(user))
+            sleep(1)
+            tn.read_until(b"Password: ")
+            tn.write(to_bytes(password))
+            index, m, output = tn.expect([b'Login incorrect', b"Last login:"])
+            if index == 0:
+                print('User data incorrect')
+            if index==1:
+                AAA_status=1
+                print('User data is correct!')
 
 
     return HOST, user, password
 
-def connect(HOST, user, password):
+def CMD_input():
+    CMD_status = 0
+    timer = 0
+    commands = []
+    print("Enter \"QUIT\"(CAPS) for complite enter commands")
+    while CMD_status==0:
+        cmd_temp = input("Enter commands[%(timer)d]" % {"timer": timer})
+        if cmd_temp == 'QUIT':
+            break
+        else:
+            commands.append(cmd_temp)
+            timer = timer + 1
+    return commands
+
+def connect(HOST, user, password, commands):
     tn = tl.Telnet(HOST)
     tn.read_until(b"login: ")
     tn.write(to_bytes(user))
@@ -39,13 +63,38 @@ def connect(HOST, user, password):
         tn.read_until(b"Password: ")
         tn.write(to_bytes(password))
     print('========connected========')
+    sleep(2)
+    for i in range(len(commands)):
+        tn.write(to_bytes(commands[i]))
+        sleep(1)
+    all_result = tn.read_very_eager().decode('utf-8')
+    print(all_result)
 
-print("========start program========")
+#functions end
+
+
+#main
+print("========start program========\n")
 
 HOST, user, password = AAA_input()
+print('\nResult:\n')
+print(HOST)
+print(user)
+print(password)
 
-print('========data entered========')
+sleep(1)
 
-connect(HOST, user, password)
+print('\n*Connection data entered*\n')
+sleep(1)
+
+commands = CMD_input()
+print('\nResult:\n')
+
+for i in range(len(commands)):
+    print(commands[i])
+print('\n*commands entered*\n')
+
+connect(HOST, user, password, commands)
 
 print('========end program=========')
+
