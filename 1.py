@@ -1,10 +1,7 @@
-import enum
 import getpass as gp
 import telnetlib as tl
-from threading import Timer
 from time import sleep
-
-from setuptools import Command
+import socket
 
 
 #functions start
@@ -22,7 +19,7 @@ def AAA_input():
         print('Data verify...')
         try:
             tn=tl.Telnet(HOST, timeout=10)
-        except TimeoutError:
+        except socket.timeout:
             print('IP incorrect or host not available')
         else:
             tn.read_until(b"login: ")
