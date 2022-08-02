@@ -8,22 +8,21 @@ def to_bytes(line):
     return f"{line}\n".encode("utf-8")
 
 
-def send_show_command(ip, username, password, commands):
+def send_show_command(ip, password, enable, command):
     with telnetlib.Telnet(ip) as telnet:
-        telnet.read_until(b"Username")
-        telnet.write(to_bytes(username))
         telnet.read_until(b"Password")
         telnet.write(to_bytes(password))
         index, m, output = telnet.expect([b">", b"#"])
         if index == 0:
             telnet.write(b"enable\n")
             telnet.read_until(b"Password")
+            telnet.write(to_bytes(enable))
             telnet.read_until(b"#", timeout=5)
         time.sleep(3)
         telnet.read_very_eager()
-        for cmd in commands:
-            telnet.write(to_bytes(cmd))
-            result = ""
+
+        telnet.write(to_bytes(command))
+        result = ""
 
         while True:
             index, match, output = telnet.expect([b"--More--", b"#"], timeout=5)
@@ -40,7 +39,7 @@ def send_show_command(ip, username, password, commands):
 
 
 if __name__ == "__main__":
-    devices = ["10.5.5.165"]
+    devices = ["10.25.3.200"]
     for ip in devices:
-        result = send_show_command(ip, "root", "51167yas", ["cd /", "ls -la", "exit"])
+        result = send_show_command(ip, "51167yas", "51167yas", "show vlan")
         pprint(result, width=120)
