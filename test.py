@@ -41,5 +41,5 @@ def send_show_command(ip, password, enable, command):
 if __name__ == "__main__":
     devices = ["10.25.3.200"]
     for ip in devices:
-        result = send_show_command(ip, "51167yas", "51167yas", "show vlan")
+        result = send_show_command(ip, "*********", "*********", "show vlan")
         pprint(result, width=120)
